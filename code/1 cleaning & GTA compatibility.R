@@ -6,7 +6,7 @@ rm(list = ls())
 
 
 # loading the data.
-setwd("GTA cloud")
+gta_setwd()
 
 project.path="8 data dumps/WTO SPS & TBT/"
 
