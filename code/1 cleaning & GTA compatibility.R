@@ -206,13 +206,59 @@ setnames(notifications.sps, "date.inforce", "date.implemented")
 
 
 
+### WTO symbol
+setnames(notifications.sps, "Document symbol", "wto.id")
+setnames(notifications.stc, "IMS ID", "wto.id")
+setnames(notifications.tbt, "Symbol", "wto.id")
+
+notifications.sps$wto.id=as.character(notifications.sps$wto.id)
+notifications.tbt$wto.id=as.character(notifications.tbt$wto.id)
+notifications.stc$wto.id=as.character(notifications.stc$wto.id)
 
 
-### HS & ICS PRODUCTS
-notifications.sps$affected.product=apply(notifications.sps, 1, function(x) paste(gsub(" |\\|","",str_extract_all(x[which(colnames(notifications.sps)=="products.hs")], "(^\\d{2,})|\\|\\d{2,}")[[1]]), collapse=","))
-notifications.tbt$affected.product=apply(notifications.tbt, 1, function(x) paste(gsub(" |\\|","",str_extract_all(x[which(colnames(notifications.tbt)=="products.hs")], "(^\\d{2,})|\\|\\d{2,}")[[1]]), collapse=","))
-notifications.stc$affected.product=apply(notifications.stc, 1, function(x) paste(gsub(" |\\|","",str_extract_all(x[which(colnames(notifications.stc)=="products.hs")], "(^\\d{2,})|\\|\\d{2,}")[[1]]), collapse=","))
 
+### HS PRODUCTS
+products=unique(rbind(notifications.sps[,c("wto.id", "products.hs")],
+                      notifications.stc[,c("wto.id", "products.hs")],
+                      notifications.tbt[,c("wto.id", "products.hs")]))
+
+products=subset(products, grepl("\\d+",products.hs))
+
+products.hs=data.frame()
+for(i in 1:nrow(products)){
+  
+  
+  products.hs=rbind(products.hs,
+                    data.frame(wto.id=products$wto.id[i],
+                                  hs.code=gsub("\\D","",unlist(str_extract_all(gsub("^\\D+","",products$products.hs[i]), "(^\\d{2,})|\\|\\d{2,}"))),
+                                  stringsAsFactors = F))
+  
+  print(i)
+  
+}
+
+rm(products)
+
+### ICS PRODUCTS
+products=unique(rbind(notifications.sps[,c("wto.id", "products.ics")],
+                      notifications.stc[,c("wto.id", "products.ics")],
+                      notifications.tbt[,c("wto.id", "products.ics")]))
+
+products=subset(products, grepl("\\d+",products.ics))
+
+products.ics=data.frame()
+for(i in 1:nrow(products)){
+  
+  
+  products.ics=rbind(products.ics,
+                     data.frame(wto.id=products$wto.id[i],
+                               ics.code=unlist(str_extract_all(products$products.ics[i], "\\d+(\\.?\\d+)*")),
+                               stringsAsFactors = F))
+  print(i)
+}
+
+
+rm(products)
 
 
 
@@ -226,14 +272,6 @@ notifications.stc$intervention.type="TBT - Specific Trade Concern"
 setnames(notifications.sps, "doc.url", "url")
 setnames(notifications.tbt, "doc.url", "url")
 setnames(notifications.stc, "doc.url", "url")
-
-### WTO symbol
-setnames(notifications.sps, "Document symbol", "Symbol")
-setnames(notifications.stc, "IMS ID", "Symbol")
-
-notifications.sps$Symbol=as.character(notifications.sps$Symbol)
-notifications.tbt$Symbol=as.character(notifications.tbt$Symbol)
-notifications.stc$Symbol=as.character(notifications.stc$Symbol)
 
 
 ### joint cleaning
