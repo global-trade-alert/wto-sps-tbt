@@ -1,2 +1,2 @@
 # wto-sps-tbt
-Joining WTO and TBT data
+Joining WTO and GTA data
