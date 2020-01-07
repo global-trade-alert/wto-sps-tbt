@@ -8,7 +8,7 @@ rm(list = ls())
 # loading the data.
 setwd("GTA cloud")
 
-project.path="8 data dumps/WTO TBT & SPS/"
+project.path="8 data dumps/WTO SPS & TBT/"
 
 load(paste0(project.path,"data/SPS search result table - interims - 2.Rdata")) ## the table data frame is split into addenda and notificaitons. No need to look at the table data frame. I just kept it.
 load(paste0(project.path,"data/TBT search result table - interims - 2.Rdata")) ## the table data frame is split into notifications, addenda and revisions
@@ -216,18 +216,18 @@ notifications.stc$affected.product=apply(notifications.stc, 1, function(x) paste
 
 
 
-# - intervention.type ("Technical Barrier to Trade", "TBT - Specific Trade Concern", "Sanitary and Phytosanitary Measure")
+### intervention.type ("Technical Barrier to Trade", "TBT - Specific Trade Concern", "Sanitary and Phytosanitary Measure")
 notifications.sps$intervention.type="Sanitary and Phytosanitary Measure"
 notifications.tbt$intervention.type="Technical Barrier to Trade"
 notifications.stc$intervention.type="TBT - Specific Trade Concern"
 
 
-# - url
+### url
 setnames(notifications.sps, "doc.url", "url")
 setnames(notifications.tbt, "doc.url", "url")
 setnames(notifications.stc, "doc.url", "url")
 
-## WTO symbol
+### WTO symbol
 setnames(notifications.sps, "Document symbol", "Symbol")
 setnames(notifications.stc, "IMS ID", "Symbol")
 
@@ -236,7 +236,7 @@ notifications.tbt$Symbol=as.character(notifications.tbt$Symbol)
 notifications.stc$Symbol=as.character(notifications.stc$Symbol)
 
 
-## joint cleaning
+### joint cleaning
 common.var=c("intervention.id", "Symbol","implementing.jurisdiction","affected.jurisdiction", "title","description", "description.language",  "affected.product", "date.announced", "date.implemented", "intervention.type", "url")
 notifications=rbind(notifications.sps[,common.var],
                     notifications.tbt[,common.var],
@@ -249,7 +249,7 @@ notifications$affected.jurisdiction=NULL
 
 
 
-## date removed or inforced based on addendum
+### date removed or inforced based on addendum
 # addenda include date information in two cases
 cases=rbind(as.data.frame.table(table(addenda.tbt$reason.for.add)), as.data.frame.table(table(addenda.sps$concern)))
 in.force=c("entry into force|enters in to force")
@@ -280,7 +280,7 @@ rm(implemented)
 
 setnames(notifications, "Symbol", "state.act.id")
 
-# - i.un
+### i.un
 ## add UN codes for the implementing and affected jurisdictions (treat the EU as if all member states impose this)
 conversion=gtalibrary::country.names
 
@@ -376,49 +376,7 @@ notifications$hs6=NULL
 
 notifications=cSplit(notifications, which(colnames(notifications)=="affected.product"), direction="long", sep=";")
 
-save(notifications, file="data/WTO TBT & SPS/WTO TBT & SPS database.Rdata")
-date.path=paste("data/WTO TBT & SPS/WTO TBT & SPS database - ",Sys.Date(),".Rdata", sep="")
+save(notifications, file="data/WTO SPS & TBT/WTO SPS & TBT database.Rdata")
+date.path=paste("data/WTO SPS & TBT/WTO SPS & TBT database - ",Sys.Date(),".Rdata", sep="")
 save(notifications, file=date.path)
-
-
-
-## (4) Desired output
-# Eventually, I need a data frame that includes the following columns:
-
-# - implementing.jurisdiction
-# - i.un
-# - affected product
-# - date.announced
-# - date.implemented
-# - title
-# - i.status (values either "announced" or "implemented")
-# - url
-# - intervention.type ("Technical Barrier to Trade", "TBT - Specific Trade Concern", "Sanitary and Phytosanitary Measure")
-# - affected flow
-# - intervention.id
-
-
-
-
-
-
-
-
-
-
-
-
-# ### (3) HS prevalence:
-# ## How many entries have at least one HS code specified?
-# hs.ics.correspondence=unique(notifications[,c("Products", "products.hs", "products.ics","products.text")])
-# hs.ics.correspondence$hs.codes=apply(hs.ics.correspondence,1,function(x) paste(unlist(str_extract_all(x[2], "\\d+ ")), collapse=",")) ## I add a space at the end of the RegEx as HS codes only appear like that, thanks to WTO website design.
-# hs.ics.correspondence$ics.codes=apply(hs.ics.correspondence,1,function(x) paste(unlist(str_extract_all(x[3], "\\d+\\.*[0-9]*\\.*[0-9]*")), collapse=","))
-# # It seems that about 4300 out of the 13'000 lines do not have an HS code.
-#
-#### HS-ICS correspondence
-## How many of those that do not have an HS code, have at least one ICS code?
-## Is it sensible to try to create our own correspondence based on the entries that have both HS and ICS codes?
-## Could be problematic if there are more than one HS and more than one ICS code. That'd make it tricky to pair the right HS-ICS combinations.
-## So, are there many instances where we have exactly 1 HS code and n ICS codes? How about the other way around (1 ICS and n HS)? Does that give us a correspondence?
-
 
