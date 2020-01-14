@@ -505,7 +505,10 @@ targeted.jurisdictions=cSplit(targeted.jurisdictions, which(names(targeted.juris
 tjs=unique(merge(targeted.jurisdictions, unique(rbind(conversion[,c("targeted.jurisdiction","a.un")],
                                                       wto.conversion[,c("targeted.jurisdiction","a.un")])), by="targeted.jurisdiction", all.x=T)[,c("targeted.jurisdiction","a.un")])
 
-
+tjs$a.un[tjs$targeted.jurisdiction=="Unión Europea"]=paste(country.names$a.un[country.names$is.eu], collapse = ",")
+tjs$a.un[tjs$targeted.jurisdiction=="European Union"]=paste(country.names$a.un[country.names$is.eu], collapse = ",")
+tjs$a.un[tjs$targeted.jurisdiction=="Union européenne"]=paste(country.names$a.un[country.names$is.eu], collapse = ",")
+  
 targeted.jurisdictions=merge(targeted.jurisdictions, tjs, by="targeted.jurisdiction", all.x=T)
 targeted.jurisdictions=cSplit(targeted.jurisdictions, which(names(targeted.jurisdictions)=="a.un"), sep=",", direction = "long")
 rm(tjs)
