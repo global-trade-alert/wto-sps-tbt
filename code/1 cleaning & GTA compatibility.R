@@ -59,6 +59,9 @@ notifications.sps$date.announced=as.Date(notifications.sps$date.announced, "%d/%
 notifications.tbt$date.announced=as.Date(notifications.tbt$date.announced, "%d/%m/%Y")
 notifications.stc$date.announced=as.Date(notifications.stc$date.announced, "%d/%m/%Y")
 
+
+
+
 # - date.implemented
 
 months="January|February|March|April|May|June|July|August|September|October|November|December"
@@ -66,9 +69,16 @@ months="January|February|March|April|May|June|July|August|September|October|Nove
 
 ## STC
 notifications.stc$date.implemented=notifications.stc$date.announced
+notifications.stc$date.removed=NA
+notifications.stc$date.adopted=NA
+notifications.stc$date.published=NA
+
 
 
 ## TBT
+notifications.tbt$date.adoption[nchar(notifications.tbt$date.adoption)<5]=NA
+notifications.tbt$date.inforce[nchar(notifications.tbt$date.inforce)<5]=NA
+
 ### adoption date
 notifications.tbt$date.adoption=as.Date(notifications.tbt$date.adoption, "%d/%m/%Y")
 
@@ -192,16 +202,118 @@ rm(tbt.no.force.no.months, tbt.no.force.months)
 notifications.tbt$date.inforce[is.na(notifications.tbt$date.inforce)==T & is.na(notifications.tbt$date.adoption)==F]=notifications.tbt$date.adoption[is.na(notifications.tbt$date.inforce)==T & is.na(notifications.tbt$date.adoption)==F]
 
 setnames(notifications.tbt, "date.inforce", "date.implemented")
+setnames(notifications.tbt, "date.adoption", "date.adopted")
+notifications.tbt$date.removed=NA
+notifications.tbt$date.published=NA
+
+
 
 
 ## SPS
+notifications.sps$date.adoption[nchar(notifications.sps$date.adoption)<5]=NA
+notifications.sps$date.publication[nchar(notifications.sps$date.publication)<5]=NA
+notifications.sps$date.inforce[nchar(notifications.sps$date.inforce)<5]=NA
+
+notifications.sps$date.adoption.text[nchar(notifications.sps$date.adoption.text)<5]=NA
+notifications.sps$date.publication.text[nchar(notifications.sps$date.publication.text)<5]=NA
+notifications.sps$date.inforce.text[nchar(notifications.sps$date.inforce.text)<5]=NA
+
+### adoption
 notifications.sps$date.adoption=as.Date(notifications.sps$date.adoption, "%d/%m/%Y")
-notifications.sps$date.inforce=as.Date(notifications.sps$date.inforce, "%d/%m/%Y")
+
+#### no date, but month mentioned
+sps.no.adoption.months=subset(notifications.sps, is.na(date.adoption) & grepl(months, date.adoption.text, ignore.case=T))
+sps.no.adoption.no.months=subset(notifications.sps, is.na(date.adoption) & grepl(months, date.adoption.text, ignore.case=T)==F)
+
+#### cleaning formatting
+sps.no.adoption.months$date.adoption.text=gsub(paste0("(",months,") (\\d+),? (\\d{4})"),"\\2 \\1 \\3",sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(paste0("(\\d+) (",months,"),? (\\d{4})"),"\\1 \\2 \\3",sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(paste0("(",months,"),? (\\d{4})"),"\\1 \\2",sps.no.adoption.months$date.adoption.text)
+
+
+sps.no.adoption.months$date.adoption.text=gsub(" ?J?anuary ","/01/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(" ?F?ebruary ","/02/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(" ?M?arch ","/03/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(" ?A?pril ","/04/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(" ?M?ay ","/05/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(" ?J?une ","/06/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(" ?J?uly ","/07/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(" ?A?ugust ","/08/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(" ?S?eptember ","/09/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(" ?O?ctober ","/10/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(" ?N?ovember ","/11/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption.text=gsub(" ?D?ecember ","/12/", sps.no.adoption.months$date.adoption.text)
+
+sps.no.adoption.months$date.adoption.text=gsub("^/","01/", sps.no.adoption.months$date.adoption.text)
+sps.no.adoption.months$date.adoption=as.Date(sps.no.adoption.months$date.adoption.text, "%d/%m/%Y")
+
+
+sps.no.adoption.months$date.adoption.text[grepl("\\d+/\\d{1,2}/\\d{4}",sps.no.adoption.months$date.adoption.text)==F]=gsub("(\\d{2}/\\d{4})","01/\\1", sps.no.adoption.months$date.adoption.text[grepl("\\d+/\\d{1,2}/\\d{4}",sps.no.adoption.months$date.adoption.text)==F])
+sps.no.adoption.months$date.adoption=as.Date(str_extract(sps.no.adoption.months$date.adoption.text, "\\d{1,2}/\\d{1,2}/\\d{4}"), "%d/%m/%Y")
+notifications.sps=rbind(subset(notifications.sps, is.na(date.adoption)==F),
+                        sps.no.adoption.months)
+
+
+
+#### no date, no month mentioned
+
+# adoption.text=as.data.frame(table(sps.no.adoption.no.months$date.adoption.text))
+# adoption.text$relative=as.numeric(grepl("notification|circulation", adoption.text$Var1, ignore.case = T))
+
+sps.no.adoption.no.months$add.days=NA
+sps.no.adoption.no.months$add.days[grepl("notification|circulation", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]=as.numeric(str_extract(sps.no.adoption.no.months$date.adoption.text[grepl("notification|circulation", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)],"\\d+"))
+sps.no.adoption.no.months$add.days[grepl(" day", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]=1*sps.no.adoption.no.months$add.days[grepl(" day", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]
+sps.no.adoption.no.months$add.days[grepl(" week", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]=7*sps.no.adoption.no.months$add.days[grepl(" week", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]
+sps.no.adoption.no.months$add.days[grepl(" month", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]=30*sps.no.adoption.no.months$add.days[grepl(" month", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]
+sps.no.adoption.no.months$add.days[grepl(" quarter", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]=90*sps.no.adoption.no.months$add.days[grepl(" quarter", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]
+sps.no.adoption.no.months$add.days[grepl(" year", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]=365*sps.no.adoption.no.months$add.days[grepl(" year", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]
+
+## corrections
+sps.no.adoption.no.months$add.days[grepl("news|gazette", sps.no.adoption.no.months$date.adoption.text, ignore.case = T)]=NA
+
+sps.no.adoption.no.months$date.adoption[is.na(sps.no.adoption.no.months$add.days)==F]=sps.no.adoption.no.months$date.announced[is.na(sps.no.adoption.no.months$add.days)==F]+sps.no.adoption.no.months$add.days[is.na(sps.no.adoption.no.months$add.days)==F]
+sps.no.adoption.no.months$add.days=NULL
+
+notifications.sps=rbind(notifications.sps,
+                        sps.no.adoption.no.months)
+
+notifications.sps$date.adoption[is.na(notifications.sps$date.adoption) & grepl("Immediately|soon as possible", notifications.sps$date.adoption.text, ignore.case = T)]=notifications.sps$date.announced[is.na(notifications.sps$date.adoption) & grepl("Immediately|soon as possible", notifications.sps$date.adoption.text, ignore.case = T)]
+
+rm(sps.no.adoption.no.months, sps.no.adoption.months)
+
+
+
+### publication
 notifications.sps$date.publication=as.Date(notifications.sps$date.publication, "%d/%m/%Y")
-notifications.sps$date.inforce[is.na(notifications.sps$date.inforce)==T & is.na(notifications.sps$date.publication)==F & notifications.sps$date.inforce.6m==0]=notifications.sps$date.publication[is.na(notifications.sps$date.inforce)==T & is.na(notifications.sps$date.publication)==F & notifications.sps$date.inforce.6m==0]
-notifications.sps$date.inforce[is.na(notifications.sps$date.inforce)==T & is.na(notifications.sps$date.publication)==F & notifications.sps$date.inforce.6m==1]=180+notifications.sps$date.publication[is.na(notifications.sps$date.inforce)==T & is.na(notifications.sps$date.publication)==F & notifications.sps$date.inforce.6m==1]
-notifications.sps$date.inforce[is.na(notifications.sps$date.inforce)==T & is.na(notifications.sps$date.publication)==F & notifications.sps$date.inforce.6m==1]=notifications.sps$date.adoption
+
+
+### in force
+notifications.sps$date.inforce=as.Date(notifications.sps$date.inforce, "%d/%m/%Y")
+
+### emergencies
+notifications.sps$emergency.start=as.Date(notifications.sps$emergency.start, "%d/%m/%Y")
+notifications.sps$emergency.end=as.Date(notifications.sps$emergency.end, "%d/%m/%Y")
+notifications.sps$date.inforce[is.na(notifications.sps$emergency.start)==F]=notifications.sps$emergency.start[is.na(notifications.sps$emergency.start)==F]
+notifications.sps$date.removed=notifications.sps$emergency.end
+
+
+### "six months after publication" box ticked with or without publication date specified.
+notifications.sps$date.inforce[is.na(notifications.sps$date.inforce) & notifications.sps$date.inforce.6m==1 & is.na(notifications.sps$date.publication)==F]=180+notifications.sps$date.publication[is.na(notifications.sps$date.inforce) & notifications.sps$date.inforce.6m==1 & is.na(notifications.sps$date.publication)==F]
+notifications.sps$date.inforce[is.na(notifications.sps$date.inforce) & notifications.sps$date.inforce.6m==1 & is.na(notifications.sps$date.adoption)==F]=180+notifications.sps$date.adoption[is.na(notifications.sps$date.inforce) & notifications.sps$date.inforce.6m==1 & is.na(notifications.sps$date.adoption)==F]
+
+## somwhow the annoucnement date rewrite does not work in the same way, I thus go by identifying the rows.
+anc=intersect(intersect(which(is.na(notifications.sps$date.inforce)), which(notifications.sps$date.inforce.6m==1)), which(is.na(notifications.sps$date.announced)==F))
+notifications.sps$date.inforce[anc]=180+notifications.sps$date.announced[anc]
+
+
+# assumptions for missing dates.
+notifications.sps$date.inforce[is.na(notifications.sps$date.inforce) & is.na(notifications.sps$date.adoption)==F]=notifications.sps$date.adoption[is.na(notifications.sps$date.inforce) & is.na(notifications.sps$date.adoption)==F]
+notifications.sps$date.inforce[is.na(notifications.sps$date.inforce) & is.na(notifications.sps$date.publication)==F]=notifications.sps$date.adoption[is.na(notifications.sps$date.inforce) & is.na(notifications.sps$date.publication)==F]
+
+
 setnames(notifications.sps, "date.inforce", "date.implemented")
+setnames(notifications.sps, "date.adoption", "date.adopted")
+setnames(notifications.sps, "date.publication", "date.published")
 
 
 
@@ -275,15 +387,11 @@ setnames(notifications.stc, "doc.url", "url")
 
 
 ### joint cleaning
-common.var=c("intervention.id", "Symbol","implementing.jurisdiction","affected.jurisdiction", "title","description", "description.language",  "affected.product", "date.announced", "date.implemented", "intervention.type", "url")
+common.var=c("intervention.id", "wto.id","implementing.jurisdiction","affected.jurisdiction", "title","description", "description.language", "date.announced", "date.implemented","date.removed", "date.published","date.adopted", "intervention.type", "url")
 notifications=rbind(notifications.sps[,common.var],
                     notifications.tbt[,common.var],
                     notifications.stc[,common.var])
 
-
-# be sure to take out measures that target specific countries but do not include Switzerland
-notifications=subset(notifications, grepl("[Aa]ll|[Ss]witzerland|[Ss]uisa",affected.jurisdiction)==T)
-notifications$affected.jurisdiction=NULL
 
 
 
@@ -299,24 +407,33 @@ addenda.tbt$original.symbol=gsub(".Add.*", "", addenda.tbt$Symbol)
 addenda.sps$`Date of distribution`=as.Date(addenda.sps$`Date of distribution`, "%d/%m/%Y")
 addenda.tbt$`Date of distribution`=as.Date(addenda.tbt$`Date of distribution`, "%d/%m/%Y")
 
-# removing withdrawn interventions
-notifications=subset(notifications, ! Symbol %in% subset(addenda.sps, grepl(removed, concern))$original.symbol)
-notifications=subset(notifications, ! Symbol %in% subset(addenda.tbt, grepl(removed, reason.for.add))$original.symbol)
-
 # updating implementation dates
 add.implemented=rbind(unique(subset(addenda.sps, grepl(in.force, concern))[,c("original.symbol", "Date of distribution")]), unique(subset(addenda.tbt, grepl(in.force, reason.for.add))[,c("original.symbol", "Date of distribution")]))
 add.implemented=aggregate(`Date of distribution` ~ original.symbol, add.implemented, max)
 
-setnames(add.implemented, "original.symbol","Symbol")
-implemented=subset(notifications, Symbol %in% add.implemented$Symbol)
-implemented=merge(implemented, add.implemented, by="Symbol", all.x=T)
+setnames(add.implemented, "original.symbol","wto.id")
+implemented=subset(notifications, wto.id %in% add.implemented$wto.id)
+implemented=merge(implemented, add.implemented, by="wto.id", all.x=T)
 implemented$date.implemented=implemented$`Date of distribution`
 implemented$`Date of distribution`=NULL
 
-notifications=rbind(subset(notifications, ! Symbol %in% add.implemented$Symbol), implemented)
+notifications=rbind(subset(notifications, ! wto.id %in% add.implemented$wto.id), implemented)
 rm(implemented)
 
-setnames(notifications, "Symbol", "state.act.id")
+
+# updating removal dates
+add.removed=rbind(unique(subset(addenda.sps, grepl(removed, concern))[,c("original.symbol", "Date of distribution")]), unique(subset(addenda.tbt, grepl(removed, reason.for.add))[,c("original.symbol", "Date of distribution")]))
+add.removed=aggregate(`Date of distribution` ~ original.symbol, add.removed, max)
+
+setnames(add.removed, "original.symbol","wto.id")
+removed=subset(notifications, wto.id %in% add.removed$wto.id)
+removed=merge(removed, add.removed, by="wto.id", all.x=T)
+removed$date.removed=removed$`Date of distribution`
+removed$`Date of distribution`=NULL
+
+notifications=rbind(subset(notifications, ! wto.id %in% add.removed$wto.id), removed)
+rm(removed)
+
 
 ### i.un
 ## add UN codes for the implementing and affected jurisdictions (treat the EU as if all member states impose this)
@@ -368,53 +485,91 @@ unique(notifications$i.un[is.na(notifications$implementing.jurisdiction)])
 
 
 
+## targeted jurisdictions
+setnames(conversion, "implementing.jurisdiction", "targeted.jurisdiction")
+setnames(conversion, "i.un", "a.un")
+
+targeted.jurisdictions=unique(notifications[,c("wto.id","affected.jurisdiction")])
+names(targeted.jurisdictions)=c("wto.id","targeted.jurisdiction")
+notifications$affected.jurisdiction=NULL
+
+targeted.jurisdictions$targeted.jurisdiction[nchar(targeted.jurisdictions$targeted.jurisdiction)<3]="All"
+targeted.jurisdictions=subset(targeted.jurisdictions, targeted.jurisdiction !="All")
+
+
+targeted.jurisdictions=cSplit(targeted.jurisdictions, which(names(targeted.jurisdictions)=="targeted.jurisdiction"), sep="|", direction="long")
+
+tjs=unique(merge(targeted.jurisdictions, conversion[,c("targeted.jurisdiction","a.un")], by="targeted.jurisdiction", all.x=T)[,c("targeted.jurisdiction","a.un")])
+tjs$a.un[tjs$affected.jurisdiction=="blabla"]=1234
+
+
+targeted.jurisdictions=merge(targeted.jurisdictions, tjs, by="targeted.jurisdiction", all.x=T)
+targeted.jurisdictions=cSplit(targeted.jurisdictions, which(names(targeted.jurisdictions)=="a.un"), sep=",", direction = "long")
+rm(tjs)
+
+rnd=0
+rounds=length(unique(targeted.jurisdictions$wto.id))
+for(symbl in unique(targeted.jurisdictions$wto.id)){
+  
+  ijs=notifications$i.un[notifications$wto.id==symbl]
+  targeted.jurisdictions=rbind(subset(targeted.jurisdictions, wto.id!=symbl),
+                               subset(targeted.jurisdictions, wto.id==symbl & ! a.un %in% ijs))
+  rm(ijs)
+  rnd=rnd+1
+  print(rnd/rounds)
+}
+
+
+
 
 # expanding HS codes
-hs.codes=gtalibrary::hs.codes
 
-hs.codes$hs2=substr(hs.codes$hs.code,1,2)
-hs.codes$hs2[nchar(hs.codes$hs.code)==5]=substr(hs.codes$hs.code[nchar(hs.codes$hs.code)==5],1,1)
+for(hs in unique(subset(products.hs, nchar(hs.code)<5)$hs.code)){
+  
+  products.hs$hs.code[products.hs$hs.code==hs]=paste(gta_hs_code_check(as.integer(hs)), collapse=";")
+  
+}
 
-hs.codes$hs4=substr(hs.codes$hs.code,1,4)
-hs.codes$hs4[nchar(hs.codes$hs.code)==5]=substr(hs.codes$hs.code[nchar(hs.codes$hs.code)==5],1,3)
-
-hs.codes.2=unique((hs.codes[,c("hs2","hs.code")]))
-names(hs.codes.2)=c("affected.product","hs6")
-
-
-hs.codes.4=unique((hs.codes[,c("hs4","hs.code")]))
-names(hs.codes.4)=c("affected.product","hs6")
-
-hs.codes.6=unique((hs.codes[,c("hs.code","hs.code")]))
-names(hs.codes.6)=c("affected.product","hs6")
-
-hs.codes=unique(rbind(hs.codes.2, hs.codes.4, hs.codes.6))
-
-hs.codes$affected.product=as.integer(hs.codes$affected.product)
-
-hs.codes=aggregate(hs6 ~ affected.product, hs.codes, function(x) paste(unique(x), collapse=";"))
+products.hs=cSplit(products.hs, which(names(products.hs)=="hs.code"), sep=";", direction="long")
+products.hs$hs.code=as.integer(products.hs$hs.code)
+products.hs=unique(products.hs)
 
 
+old.vintages=unique(products.hs$hs.code)
+old.vintages=old.vintages[! old.vintages %in% gtalibrary::hs.codes$hs.code]
 
-notifications=subset(notifications, nchar(affected.product)>0)
-notifications=cSplit(notifications, which(colnames(notifications)=="affected.product"), direction="long", sep=",")
-unique(nchar(notifications$affected.product))
+if(length(old.vintages)>0){
+  
+  
+  for(hs in old.vintages){
+    
+    products.hs$hs.code[products.hs$hs.code==hs]=paste(gta_hs_vintage_converter(as.integer(hs)), collapse=";")
+    
+  }
+  
+  products.hs=cSplit(products.hs, which(names(products.hs)=="hs.code"), sep=";", direction="long")
+  products.hs$hs.code=as.integer(products.hs$hs.code)
+  products.hs=unique(products.hs)
+  
+}
+products.hs=subset(products.hs, hs.code %in% hs.codes$hs.code)
 
-notifications$affected.product[notifications$affected.product>=1061 & notifications$affected.product<=1063]=106
 
-notifications=merge(notifications, hs.codes, by="affected.product", all.x=T)
-notifications$hs6[is.na(notifications$hs6) & nchar(notifications$affected.product)>=5]=notifications$affected.product[is.na(notifications$hs6) & nchar(notifications$affected.product)>=5]
+# expanding ICS codes
+ics.names=gtalibrary::ics.names
 
-## have to convert those someday.
-old.hs.vintages=subset(notifications, is.na(hs6))
+all.ics=unique(products.ics$ics.code)
 
-notifications=subset(notifications, is.na(hs6)==F)
-notifications$affected.product=notifications$hs6
-notifications$hs6=NULL
+for(ics in all.ics[!all.ics %in% ics.names$ics.code[ics.names$most.granular]]){
+  
+  products.ics$ics.code[products.ics$ics.code==ics]=paste(ics.names$ics.code[ics.names$most.granular & grepl(paste0("^",ics), ics.names$ics.code)], collapse=";")
+  
+}
 
-notifications=cSplit(notifications, which(colnames(notifications)=="affected.product"), direction="long", sep=";")
+products.ics=cSplit(products.ics, which(names(products.ics)=="ics.code"), sep=";", direction="long")
 
-save(notifications, file="data/WTO SPS & TBT/WTO SPS & TBT database.Rdata")
-date.path=paste("data/WTO SPS & TBT/WTO SPS & TBT database - ",Sys.Date(),".Rdata", sep="")
-save(notifications, file=date.path)
+products.ics=subset(products.ics, ics.code %in% ics.names$ics.code[ics.names$most.granular])
+
+
+save(notifications, targeted.jurisdictions, products.hs, products.ics, file="data/WTO SPS & TBT/WTO SPS & TBT database.Rdata")
 
