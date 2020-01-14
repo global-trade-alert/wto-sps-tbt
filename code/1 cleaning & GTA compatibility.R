@@ -489,6 +489,9 @@ unique(notifications$i.un[is.na(notifications$implementing.jurisdiction)])
 setnames(conversion, "implementing.jurisdiction", "targeted.jurisdiction")
 setnames(conversion, "i.un", "a.un")
 
+wto.conversion=read.csv(paste0(project.path,"help files/WTO jurisdictions.csv"),sep=";", stringsAsFactors = F, encoding = "UTF-8")
+names(wto.conversion)=c("targeted.jurisdiction","targeted.jurisdiction.tl","a.un")
+
 targeted.jurisdictions=unique(notifications[,c("wto.id","affected.jurisdiction")])
 names(targeted.jurisdictions)=c("wto.id","targeted.jurisdiction")
 notifications$affected.jurisdiction=NULL
@@ -499,8 +502,8 @@ targeted.jurisdictions=subset(targeted.jurisdictions, targeted.jurisdiction !="A
 
 targeted.jurisdictions=cSplit(targeted.jurisdictions, which(names(targeted.jurisdictions)=="targeted.jurisdiction"), sep="|", direction="long")
 
-tjs=unique(merge(targeted.jurisdictions, conversion[,c("targeted.jurisdiction","a.un")], by="targeted.jurisdiction", all.x=T)[,c("targeted.jurisdiction","a.un")])
-tjs$a.un[tjs$affected.jurisdiction=="blabla"]=1234
+tjs=unique(merge(targeted.jurisdictions, unique(rbind(conversion[,c("targeted.jurisdiction","a.un")],
+                                                      wto.conversion[,c("targeted.jurisdiction","a.un")])), by="targeted.jurisdiction", all.x=T)[,c("targeted.jurisdiction","a.un")])
 
 
 targeted.jurisdictions=merge(targeted.jurisdictions, tjs, by="targeted.jurisdiction", all.x=T)
