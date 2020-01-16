@@ -38,12 +38,13 @@ notifications.stc$affected.jurisdiction="All"
 # - title
 
 notifications.sps$title[notifications.sps$title.language!="English"]=paste(notifications.sps$objective[notifications.sps$title.language!="English"], ": ", gsub(";$","",notifications.sps$`Notification Keywords`[notifications.sps$title.language!="English"]), " (",notifications.sps$`Document type`[notifications.sps$title.language!="English"],")", sep="")
+## PL: Why this following line? When I run this, there are no rows with affected="all" and language!="english".
 notifications.sps$title[notifications.sps$affected.trading.partners!="All" & notifications.sps$title.language!="English"]=paste(notifications.sps$objective[notifications.sps$affected.trading.partners!="All" & notifications.sps$title.language!="English"], " concerning imports from ",
                                                                                   notifications.sps$affected.trading.partners[notifications.sps$affected.trading.partners!="All" & notifications.sps$title.language!="English"],": ",
                                                                                   gsub(";$","",notifications.sps$`Notification Keywords`[notifications.sps$affected.trading.partners!="All" & notifications.sps$title.language!="English"]), " (",
                                                                                   notifications.sps$`Document type`[notifications.sps$affected.trading.partners!="All" & notifications.sps$title.language!="English"],")", sep="")
 
-notifications.tbt=subset(notifications.tbt, is.na(objective)==F & is.na(Type)==F)
+notifications.tbt=subset(notifications.tbt, is.na(objective)==F & is.na(Type)==F) ## PL: Again, are these just checks? Because to me, after subsetting the dataframe has the same number of rows.
 notifications.tbt$title[notifications.tbt$title.language!="English"]=paste(gsub(";$","",notifications.tbt$objective[notifications.tbt$title.language!="English"]), " (",notifications.tbt$Type[notifications.tbt$title.language!="English"],")", sep="")
 setnames(notifications.stc, "Title", "title")
 
@@ -475,7 +476,7 @@ notifications$i.un[notifications$implementing.jurisdiction=="Venezuela, Bolivari
 notifications$i.un[notifications$implementing.jurisdiction=="Viet Nam"]=704
 
 # should only be Macao, North Macedonia
-unique(notifications$implementing.jurisdiction[is.na(notifications$i.un)])
+unique(notifications$implementing.jurisdiction[is.na(notifications$i.un)]) ##PL: I also get Antigua and Barbuda
 notifications=subset(notifications, is.na(i.un)==F)
 
 notifications$implementing.jurisdiction=NULL
